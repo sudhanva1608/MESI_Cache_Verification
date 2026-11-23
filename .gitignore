@@ -1,0 +1,9 @@
+build/
+.venv/
+venv/
+__pycache__/
+*.pyc
+.vscode/
+.idea/
+*.log
+*.tmp
