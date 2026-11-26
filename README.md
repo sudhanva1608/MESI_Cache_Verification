@@ -1,47 +1,23 @@
-# MESI Cache Verification Project
+# MESI Cache Verification
 
-## Project Overview
+This repository contains an early C++ prototype for modeling and testing MESI cache coherence. It currently models a single shared integer value and one cache line per core, with coherence behavior exercised through sequential calls in unit tests.
 
-This project focuses on Automated Concurrent Execution Testing and Fault Detection in MESI-Based Multicore Cache Coherence Systems. The goal is to develop a verification framework that can systematically test MESI protocol implementations under concurrent execution scenarios to detect coherence violations, deadlocks, and performance anomalies.
+## Current implementation
 
-## Objectives
+- MESI states: Modified, Exclusive, Shared, and Invalid.
+- A `CoherenceManager` creates one cache per requested core and supports reads and writes by core ID.
+- The manager models cache-to-cache sharing, invalidations, and write-back of modified data.
+- Coherence bus actions and affected core state changes are recorded in transaction history.
+- GoogleTest unit tests cover MESI state transitions, cache and memory initialization, coherence behavior, and transaction history.
 
-1. Build a cycle-accurate cache coherence simulator supporting MESI protocol with configurable cache hierarchies
-2. Develop automated test generation for concurrent memory access patterns
-3. Implement formal verification techniques to detect protocol violations
-4. Create a regression testing framework for continuous validation
-5. Generate performance metrics and visualizations for coherence traffic analysis
+This is a functional state model, not yet a full cache or hardware simulator. Each cache contains one line with one `int`; `MainMemory` also stores one `int`. There are no memory addresses, configurable cache capacities, cache hierarchy, actual concurrent core threads, cycle timing, or DRAM model.
 
-## Directory Structure
+## Build and run tests
 
-MESI_Cache_Verification/
-- src/
-  - cache/          # Cache model implementations (L1, L2, shared caches)
-  - coherence/      # MESI protocol state machines and coherence logic
-  - simulator/      # Cycle-accurate simulation engine
-- tests/
-  - unit/           # Unit tests for individual components
-  - integration/    # Integration tests for cache-coherence interactions
-  - protocol/       # Protocol-level compliance tests
-- experiments/
-  - workloads/      # Synthetic and real-world memory access traces
-  - configurations/ # System configuration files (cache sizes, associativity, etc.)
-- datasets/         # Collected experimental data and traces
-- results/
-  - logs/           # Simulation execution logs
-  - metrics/        # Extracted performance metrics
-  - plots/          # Generated visualization outputs
-- docs/
-  - literature_review/  # Survey of related work
-  - research_notes/     # Research objectives and hypotheses
-  - architecture/       # System design documents
-- scripts/            # Automation and utility scripts
-- config/             # Global configuration files
+Requirements: CMake 3.20 or newer, a C++17 compiler, and GoogleTest.
 
-## Getting Started
-
-Work in progress - setup phase only. Implementation will begin after workspace approval.
-
-## License
-
-Research project - internal use.
+```bash
+cmake -S . -B build
+cmake --build build
+ctest --test-dir build --output-on-failure
+```
