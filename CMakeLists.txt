@@ -12,6 +12,7 @@ enable_testing()
 
 add_library(mesi_coherence
     src/coherence/mesi_state.cpp
+    src/coherence/coherence_manager.cpp
 )
 
 target_include_directories(mesi_coherence PUBLIC
@@ -22,6 +23,8 @@ add_executable(mesi_tests
     tests/unit/mesi_state_test.cpp
     tests/unit/cache_test.cpp
     tests/unit/main_memory_test.cpp
+    tests/unit/coherence_manager_test.cpp
+    tests/unit/transaction_history_test.cpp
 )
 
 target_link_libraries(mesi_tests
