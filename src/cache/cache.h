@@ -10,8 +10,12 @@ private:
 
 public:
     CacheLine& getLine() {
-        return line;
-    }
+    return line;
+}
+
+const CacheLine& getLine() const {
+    return line;
+}
 };
 
 #endif
