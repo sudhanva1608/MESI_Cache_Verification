@@ -1,4 +1,3 @@
-
 #ifndef CACHE_LINE_H
 #define CACHE_LINE_H
 
@@ -6,11 +5,12 @@
 
 class CacheLine {
 public:
-
+    int address;
     MESIState state;
     int data;
 
     CacheLine() {
+        address = -1;  // -1 means no address assigned
         state = MESIState::Invalid;
         data = 0;
     }

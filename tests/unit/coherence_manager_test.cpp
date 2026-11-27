@@ -159,3 +159,85 @@ TEST(CoherenceManagerTest, ReadGetsLatestModifiedValue) {
 
     EXPECT_EQ(manager.readMemory(), 200);
 }
+TEST(CoherenceManagerTest, IndependentMemoryAddresses) {
+
+    CoherenceManager manager(2);
+
+    manager.write(0, 100, 500);
+    manager.write(0, 200, 800);
+
+    EXPECT_EQ(manager.read(0, 100), 500);
+    EXPECT_EQ(manager.read(0, 200), 800);
+
+    EXPECT_EQ(manager.read(1, 100), 500);
+    EXPECT_EQ(manager.read(1, 200), 800);
+}
+TEST(CoherenceManagerTest, AddressSpecificInvalidation) {
+
+    CoherenceManager manager(2);
+
+    manager.read(0, 100);
+    manager.read(1, 100);
+
+    manager.read(0, 200);
+    manager.read(1, 200);
+
+    manager.write(0, 100, 500);
+
+    EXPECT_EQ(
+        manager.getCache(0).findLine(100)->state,
+        MESIState::Modified
+    );
+
+    EXPECT_EQ(
+        manager.getCache(1).findLine(100)->state,
+        MESIState::Invalid
+    );
+
+    EXPECT_EQ(
+        manager.getCache(0).findLine(200)->state,
+        MESIState::Shared
+    );
+
+    EXPECT_EQ(
+        manager.getCache(1).findLine(200)->state,
+        MESIState::Shared
+    );
+}
+TEST(CoherenceManagerTest, AddressSpecificWriteBack) {
+
+    CoherenceManager manager(2);
+
+    manager.write(0, 100, 500);
+    manager.write(0, 200, 800);
+
+    EXPECT_EQ(manager.readMemory(100), 0);
+    EXPECT_EQ(manager.readMemory(200), 0);
+
+    EXPECT_EQ(manager.read(1, 100), 500);
+
+    EXPECT_EQ(manager.readMemory(100), 500);
+    EXPECT_EQ(manager.readMemory(200), 0);
+
+    EXPECT_EQ(manager.read(1, 200), 800);
+
+    EXPECT_EQ(manager.readMemory(200), 800);
+}
+TEST(CoherenceManagerTest, BackwardCompatibleDefaultAddress) {
+
+    CoherenceManager manager(2, 100);
+
+    EXPECT_EQ(manager.read(0), 100);
+    EXPECT_EQ(manager.read(0, 0), 100);
+
+    manager.write(0, 500);
+
+    EXPECT_EQ(manager.read(1, 0), 500);
+    EXPECT_EQ(manager.readMemory(), 500);
+    EXPECT_EQ(manager.readMemory(0), 500);
+
+    manager.write(1, 0, 800);
+
+    EXPECT_EQ(manager.read(0), 800);
+    EXPECT_EQ(manager.readMemory(), 800);
+}
