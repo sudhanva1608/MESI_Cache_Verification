@@ -341,3 +341,75 @@ TEST(TransactionHistoryTest, DoesNotRecordAlreadyInvalidCoresAsAffected) {
     EXPECT_EQ(transaction.affectedCores[1].stateBefore, MESIState::Shared);
     EXPECT_EQ(transaction.affectedCores[1].stateAfter, MESIState::Modified);
 }
+TEST(TransactionHistoryTest, RecordsDataOnBusRd) {
+
+    CoherenceManager manager(2, 100);
+
+    manager.read(0);
+
+    const auto& history =
+        manager.getTransactionHistory();
+
+    ASSERT_EQ(history.size(), 1);
+
+    EXPECT_EQ(history[0].action, CoherenceAction::BusRd);
+    EXPECT_EQ(history[0].dataBefore, 0);
+    EXPECT_EQ(history[0].dataAfter, 100);
+}
+TEST(TransactionHistoryTest, RecordsDataOnBusRdX) {
+
+    CoherenceManager manager(2, 100);
+
+    manager.write(0, 200);
+
+    const auto& history =
+        manager.getTransactionHistory();
+
+    ASSERT_EQ(history.size(), 1);
+
+    EXPECT_EQ(history[0].action, CoherenceAction::BusRdX);
+    EXPECT_EQ(history[0].dataBefore, 0);
+    EXPECT_EQ(history[0].dataAfter, 200);
+}
+TEST(TransactionHistoryTest, RecordsDataOnBusUpgr) {
+
+    CoherenceManager manager(2, 100);
+
+    manager.read(0);
+    manager.read(1);
+
+    manager.write(0, 300);
+
+    const auto& history =
+        manager.getTransactionHistory();
+
+    ASSERT_EQ(history.size(), 3);
+
+    EXPECT_EQ(history[2].action, CoherenceAction::BusUpgr);
+    EXPECT_EQ(history[2].dataBefore, 100);
+    EXPECT_EQ(history[2].dataAfter, 300);
+}
+TEST(TransactionHistoryTest, RecordsCorrectMemoryAddress) {
+
+    CoherenceManager manager(2);
+
+    manager.read(0, 100);
+    manager.write(1, 200, 500);
+    manager.read(1, 100);
+    manager.write(0, 100, 800);
+
+    const auto& history =
+        manager.getTransactionHistory();
+
+    ASSERT_EQ(history.size(), 4u);
+
+    EXPECT_EQ(history[0].address, 100);
+    EXPECT_EQ(history[1].address, 200);
+    EXPECT_EQ(history[2].address, 100);
+    EXPECT_EQ(history[3].address, 100);
+
+    EXPECT_EQ(history[0].action, CoherenceAction::BusRd);
+    EXPECT_EQ(history[1].action, CoherenceAction::BusRdX);
+    EXPECT_EQ(history[2].action, CoherenceAction::BusRd);
+    EXPECT_EQ(history[3].action, CoherenceAction::BusUpgr);
+}
